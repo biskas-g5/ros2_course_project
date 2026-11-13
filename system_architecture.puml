@@ -1,0 +1,66 @@
+@startuml
+
+package "robot"{
+    package "Hardware layer"{
+        [chassis_controller]
+        [base_devices_controller]
+        package "Additional devices"{
+            [display_controller]
+            [lidar_controller]
+            [distance_sensors_controller]
+            [line_sensor_controller]
+        }
+        [battery_status_controller]
+        [case_state_controller]
+    }
+    [internal_state_reporter]
+    [external_state_reporter]
+    [general_state_machine]
+    [map_drawer]
+    [path_planner]
+    [super_control]
+}
+
+package "control device"{
+    [robot_control]
+    [graph_node]
+}
+
+"Hardware layer" <- [general_state_machine] : general control commands
+"Hardware layer" -> [internal_state_reporter] : states of the connected devices and safety sensors
+"Hardware layer" -> [map_drawer] : colected and filtered sensors data
+
+note top of base_devices_controller
+    Осуществляет управление
+    и возвращает статус всех
+    основных устройств рамы
+    (фары, поворотники, 
+    захваты и датчики касания)
+end note
+
+note top of "Additional devices"
+    Дополнительные подключаемые устройсвая 
+    (опционально изменяемая конфигурация)
+end note
+
+note top of "internal_state_reporter"
+    Докладчик внутреннего состояния  для 
+    контроля статуса робота  работать 
+    и производить и опрос датчиков
+end note
+
+note top of "external_state_reporter"
+    Докладчик внешнего состояния для
+    контроля статуса выполняния задач
+    и внешних событий управляющих 
+    сигналов
+end note
+
+note top of "super_control"
+    Нода осуществляющая передачу 
+    внешнего управляющего сигнала
+    и телеметрии
+end note
+
+
+@enduml
