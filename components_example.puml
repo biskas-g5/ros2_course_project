@@ -1,0 +1,28 @@
+@startuml
+package "Hardware layer"{
+[base_controller]
+[shoulder_controller]
+[wrist1_controller]
+[wrist2_controller]
+[wrist3_controller]
+}
+[state_machine]
+[path_planner]
+[robot_state_reporter]
+[safety_controller]
+[target_detector]
+
+note top of path_planner
+Получает на вход
+целевые координаты захвата
+и публикует в ответ целевые
+координаты узлов
+end note
+
+"Hardware layer" <- [state_machine] : joints target commands
+[state_machine] <- path_planner : /joints_target_positions
+[state_machine] <- [target_detector]: /detected_targets
+"Hardware layer" -> robot_state_reporter: joints states
+[safety_controller] <- robot_state_reporter: /joints_states
+
+@enduml
