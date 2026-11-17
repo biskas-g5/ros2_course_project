@@ -13,12 +13,17 @@ package "robot"{
         [battery_status_controller]
         [case_state_controller]
     }
+
+    package "Navigation layer"{
+        [localisation_module]
+        [map_saver]
+        [path_planner]
+    }
+    
     [internal_state_reporter]
     [external_state_reporter]
     [general_state_machine]
-    [map_drawer]
-    [path_planner]
-    [super_control]
+    [external_control]
 }
 
 package "control device"{
@@ -26,11 +31,9 @@ package "control device"{
     [graph_node]
 }
 
-"Hardware layer" <- [general_state_machine] : general control commands
-"Hardware layer" -> [internal_state_reporter] : states of the connected devices and safety sensors
-"Hardware layer" -> [map_drawer] : colected and filtered sensors data
 
-note top of base_devices_controller
+
+note bottom of base_devices_controller
     Осуществляет управление
     и возвращает статус всех
     основных устройств рамы
@@ -56,11 +59,39 @@ note top of "external_state_reporter"
     сигналов
 end note
 
-note top of "super_control"
+note bottom of "external_control"
     Нода осуществляющая передачу 
     внешнего управляющего сигнала
     и телеметрии
 end note
 
 
+
+
+
+[chassis_controller] -down-> [localisation_module]: /odometry_vecktors
+[lidar_controller] -> [localisation_module]: /lidar_dots
+[distance_sensors_controller] -> [localisation_module]: /distances
+localisation_module --> map_saver: /coords
+localisation_module <--> map_saver: /current_map
+localisation_module --> path_planner: /coords
+map_saver --> path_planner
+
+
+[base_devices_controller] -up-> [internal_state_reporter]
+[case_state_controller] -up--> [internal_state_reporter]
+[battery_status_controller] -up-> [internal_state_reporter]
+
+line_sensor_controller -up--> external_state_reporter
+distance_sensors_controller -up-> external_state_reporter
+
+path_planner <--> general_state_machine
+general_state_machine <-up- internal_state_reporter
+general_state_machine <-up- external_state_reporter
+general_state_machine <-down-> external_control
+general_state_machine -up-> chassis_controller
+display_controller <- general_state_machine
+
+external_control <-down-> robot_control
+external_control -down-> graph_node
 @enduml
