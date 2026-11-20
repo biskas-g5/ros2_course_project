@@ -15,11 +15,11 @@ package "robot"{
     }
 
     package "Navigation layer"{
-        [localisation_module]
-        [map_saver]
-        [path_planner]
+        [localisation_module**]
+        [map_saver**]
+        [path_planner**]
     }
-    
+    [current_vecktor_resolver**]
     [internal_state_reporter]
     [external_state_reporter]
     [general_state_machine]
@@ -69,28 +69,31 @@ end note
 
 
 
-chassis_controller -down-> localisation_module: /odometry_vecktors
-base_devices_controller -down-> localisation_module: /imu_vecktors
-lidar_controller -> localisation_module: /lidar_dots
-distance_sensors_controller -> localisation_module: /distances
-localisation_module --> map_saver: /coords
-localisation_module <--> map_saver: /current_map**
-localisation_module --> path_planner: /coords
-map_saver --> path_planner: /access_map
+chassis_controller -down-> [localisation_module**]: /odometry_vecktors
+base_devices_controller -down-> [localisation_module**]: /imu_vecktors
+lidar_controller -> [localisation_module**]: /lidar_dots
+distance_sensors_controller -> [localisation_module**]: /distances
+[localisation_module**] --> [map_saver**]: /coords
+[localisation_module**] <--> [map_saver**]: /current_map**
+[localisation_module**] --> [path_planner**]: /coords
+[map_saver**] --> [path_planner**]: /access_map
 
 
-base_devices_controller -up-> internal_state_reporter: /device_states**
-case_state_controller -up--> internal_state_reporter: /case_states**
-battery_status_controller -up-> internal_state_reporter: /battery_state
+base_devices_controller -up-> [internal_state_reporter]: /device_states**
+case_state_controller -up--> [internal_state_reporter]: /case_states**
+battery_status_controller -up-> [internal_state_reporter]: /battery_state
 
-line_sensor_controller -up--> external_state_reporter: /line_sen_vals
-distance_sensors_controller -up-> external_state_reporter: /distance_sen_vals
+line_sensor_controller -up--> [external_state_reporter]: /line_sen_vals
+distance_sensors_controller -up-> [external_state_reporter]: /distance_sen_vals
 
-path_planner <--> general_state_machine: /path_vecktors
-general_state_machine <-up- internal_state_reporter: /robot_state
-general_state_machine <-up- external_state_reporter: /exterior_state
-general_state_machine <-down-> external_control: /gen_robot_ctrl
-general_state_machine -up-> chassis_controller: /chassis_trgt_vecktor
+[path_planner**] --> [general_state_machine]: /path_vecktors
+general_state_machine <-up- [internal_state_reporter]: /robot_state
+general_state_machine <-up- [external_state_reporter]: /exterior_state
+general_state_machine <-down-> [external_control]: /gen_robot_ctrl
+general_state_machine -up-> [current_vecktor_resolver**]: /path_control
+[localisation_module**] -right-> [current_vecktor_resolver**]: /coords
+[current_vecktor_resolver**] -up-> [chassis_controller]: /chassis_trgt_vecktor
+
 display_controller <- general_state_machine: /display_data
 general_state_machine -up-> base_devices_controller: /base_device_ctrl
 
